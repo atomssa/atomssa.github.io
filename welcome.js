@@ -52,7 +52,7 @@ var Welcome = Class.create({
 
 		var dist = Math.abs(p.cur_x - p.og_x) + Math.abs(p.cur_y - p.og_y);
 		// var dist = Math.sqrt( (p.cur_x - p.og_x)*(p.cur_x - p.og_x) + (p.cur_y - p.og_y)*(p.cur_y - p.og_y)  );
-		var damper = ( dist > 100 ? 0.6 : 0.97 );
+		var damper = 1.5*( dist > 100 ? 0.6 : 0.97 );
 
 		var f_og_x = -( p.cur_x - p.og_x ) * 0.08;
 		var f_og_y = -( p.cur_y - p.og_y ) * 0.08;
