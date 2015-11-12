@@ -31,10 +31,9 @@ var Welcome = Class.create({
 	}.bind(this), 0.016 );
     },
 
-
     doPhysics: function( delta_t ) {
 	if( !delta_t ) return;
-	//if( this.pointer_force.cur_pos === this.pointer_force.last_pos ) return;
+	if( this.pointer_force.cur_pos === this.pointer_force.last_pos ) return;
 	var path_datas, anchor_points, num_point, i, p;
 	for( path_id in this.paths ) {
 	    path_datas = this.paths[path_id];
@@ -44,35 +43,37 @@ var Welcome = Class.create({
 	    for( i=0; i<num_point; i++ ) {
 		p = anchor_points[i];
 
-		var dx = p.speed_x * delta_t;
-		var dy = p.speed_y * delta_t;
+		var dx = 1.5 * p.speed_x * delta_t;
+		var dy = 1.5 * p.speed_y * delta_t;
 
 		p.cur_x += dx;
 		p.cur_y += dy;
 
 		var dist = Math.abs(p.cur_x - p.og_x) + Math.abs(p.cur_y - p.og_y);
 		// var dist = Math.sqrt( (p.cur_x - p.og_x)*(p.cur_x - p.og_x) + (p.cur_y - p.og_y)*(p.cur_y - p.og_y)  );
-		var damper = ( dist > 100 ? 0.6 : 0.97 )/1.5;
+		var damper = ( dist > 50 ? 0.4 : ( dist > 25 ? 0.8 : 0.98) )/1.5;
 
 		var f_og_x = -( p.cur_x - p.og_x ) * 0.08;
 		var f_og_y = -( p.cur_y - p.og_y ) * 0.08;
 
 		var f_mouse_x = 0;
 		var f_mouse_y = 0;
+		var dist_x = Math.abs(this.pointer_force.cur_pos.x - p.cur_x);
+		var dist_y = Math.abs(this.pointer_force.cur_pos.y - p.cur_y);
 		if( this.pointer_force.cur_pos
-		    && Math.abs(this.pointer_force.cur_pos.x - p.cur_x) < 30
-		    && Math.abs(this.pointer_force.cur_pos.y - p.cur_y) < 30 ) {
-		    f_mouse_x = (this.pointer_force.cur_pos.x - this.pointer_force.last_pos.x)*100;
-		    f_mouse_y = (this.pointer_force.cur_pos.y - this.pointer_force.last_pos.y)*100;
+		    && dist_x < 30
+		    && dist_y < 30 ) {
+		    f_mouse_x = (this.pointer_force.cur_pos.x - this.pointer_force.last_pos.x)*15/dist_x;
+		    f_mouse_y = (this.pointer_force.cur_pos.y - this.pointer_force.last_pos.y)*15/dist_y;
 		}
 
-		var other_anchor_i = ( i == num_point-1 ? 0 : i+1 );
-		var p2 = anchor_points[other_anchor_i];
+		var neighbor_i = ( i == num_point-1 ? 0 : i+1 );
+		var p2 = anchor_points[neighbor_i];
 		var f_next_x = -((p2.og_x - p.og_x) - (p2.cur_x - p.cur_x)) * 0.7;
 		var f_next_y = -((p2.og_y - p.og_y) - (p2.cur_y - p.cur_y)) * 0.7;
 
-		other_anchor_i = ( i == 0 ? num_point-1 : i-1 );
-		p2 = anchor_points[other_anchor_i];
+		neighbor_i = ( i == 0 ? num_point-1 : i-1 );
+		p2 = anchor_points[neighbor_i];
 		var f_prev_x = -((p2.og_x - p.og_x) - (p2.cur_x - p.cur_x)) * 0.7;
 		var f_prev_y = -((p2.og_y - p.og_y) - (p2.cur_y - p.cur_y)) * 0.7;
 
@@ -99,6 +100,14 @@ var Welcome = Class.create({
 
     },
 
+    getRandomColor: function() {
+	var letters = '0123456789ABCDEF'.split('');
+	var color = '#';
+	for (var i = 0; i < 6; i++ ) {
+            color += letters[Math.floor(Math.random() * 16)];
+	}
+	return color;
+    },
 
     initPath: function() {
 
@@ -242,9 +251,11 @@ var Welcome = Class.create({
 		}
 	    }
 
+	    var rnd_col = this.getRandomColor();
+	    var rnd_col2 = (path_id == 'e1_in' || path_id == 'e2_in' ) ? '#FFFFFF' : this.getRandomColor();
 	    var attr = (path_strings[path_id].bg_color ?
 			{ fill:path_strings[path_id].bg_color, stroke:'none' }
-			: {stroke: '#000', 'stroke-width':1} );
+			: {stroke: rnd_col, 'stroke-width':5, 'fill': rnd_col2} );
 
 	    this.paths[path_id] = {};
 	    this.paths[path_id].og_path_datas = path_datas;
